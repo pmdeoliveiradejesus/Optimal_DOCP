@@ -1,0 +1,204 @@
+% ODOCR (67 PHASE) - Optimal Directional 67 PHASE Overcurrent Coordination Relays Problem
+% Iterative model with transient configurations
+% Sorrentino, Elmer, and José Vicente Rodríguez.
+% "A novel and simpler way to include transient configurations in 
+% optimal coordination of directional overcurrent protections."
+% Electric Power Systems Research 180 (2020): 106127.
+% 
+% First version: July 15, 2020 
+% Second version: July 15, 2022
+% Third version: Oct. 21, 2024 - Database unification
+% Fourth version: March. 31, 2026 - Coordination matrix corrected, new
+% selectivity constraint Dt > kt*Tp
+clear all
+close all
+clc
+warning('off', 'all');
+% disp('DOCR (67 Phase) with Transient Configurations')
+disp('Optimal Coordination of Directional Overcurrent Relays ')
+disp('in Interconnected Power Systems')
+disp('Including Transient Network Configurations')
+disp('Version 4.0 (c) 2026')
+disp('Paulo M. De Oliveira pdeoliv at gmail.com')
+disp('Power and Energy Group - https://power.uniandes.edu.co/')
+disp('Universidad de los Andes, Colombia')
+% disp(' ')
+% disp(' ')
+time0=cputime;
+%% Case study
+%clearvars -except aaSolution
+iters=0;
+for Rd=0:5:115
+addpath('./data/')
+global Dmin Co upperbound lowerbound nr bdat ldat K  Ip Sbase Vbase Zbase Ibase econv itermax tdat nlf  reversest linenumber back main dictiolines dictiorelays
+%% Select test case
+%case_threebus_optimization_data; %Urdaneta/Perez/Nadira Modified Test Case
+case_eightbus_optimization_data; %Braga Test Case
+%NRF=[1 2 3	4	5	6	7	8	9	10	11	12	13	14	15	16	17	18	19	20	25	30	35	40	45	50	60	70	80	90	100	200	300	400	500	600	700	800	900	1000	2500];
+%for ku=2:length(NRF)
+%    nrf=NRF(ku); % This loop allow to study method convergence evolution
+%    when nrf varies from 1 to 2500 constraints
+nrf=100; % Define Number of (Uniformly Distributed) Relevant Faults Location   
+%clearvars -except SepTi NSepTi NRF ku ShortC Response time000 nrf RF Bxx econverg i nf B Bast2 reply2 H lowerbound upperbound qmax D D2 Dsol nlf nr Dmin Dmax Co dictiorelays npr reversest linenumber back main dictiolines  
+time000=cputime;
+nf=1000;%number of faults per line (only for simulation, evaluation)
+reply2 = 'n';% 'n' means no prefault conditions
+for k=1:nrf
+ H(k,:)=ones(1,nlf)*k/(nrf+1);
+end
+ H(1,:)=ones(1,nlf)*lowerbound;
+
+ H(nrf,:)=ones(1,nlf)*upperbound;
+i=0;
+econverg=1;
+criterion=2.3*10^-11;  
+%Rd=  10;%ohms
+Rf0= Rd;%ohms
+while econverg >= 0
+    i=i+1
+        Rf=Rd/Zbase;
+    buildRf1;
+    halfSm5=halfSm;
+    B5=Bc;
+    clear Bc
+    Rf=Rf0/Zbase;
+    buildRf1;
+    halfSm=halfSm;
+    B=Bc;
+
+
+    %pause
+Rf=Rf0/Zbase;
+%% Objective function: only primary times of for near-end faults 
+%% Just like the OF ussed by Ezzadine and Sorrentino
+ for kk2=1:length(H(:,1))
+ 
+   
+
+    for jj=1:nlf %generate 2 fault locations per line 1 to nlf
+    Hnf(1,jj)=lowerbound;
+    Hnf(2,jj)=upperbound;
+    end  
+for kk=1:2
+[index3]=run_shortcircuit_optimizer(Hnf(kk,:));  %invoke the shortcircuit program    
+jj=1;
+for ii=1:nr
+   jj=find(index3(:,3)==ii);
+   fx2(kk,ii)=index3(jj(1),13);
+end
+end  
+    for kk=1:2:nr  
+     f(kk)=fx2(1,kk);
+    end
+    for kk=2:2:nr  
+     f(kk)=fx2(2,kk);
+    end     
+end
+%% Optimization model   
+x0=zeros(nr,1);
+% %% LP solver
+ LB=ones(nr,1)*Dmin;
+ UB=[]; 
+ Aeq=[];
+ beq=[];
+% B=Bc;%Coordinated B with simulator
+bneq=ones(length(B(:,1)),1)*Co;
+bneq5=ones(length(B5(:,1)),1)*Co;
+% disp('Optimizing. Please wait...! ')
+% % Optimization problem: min f st. B > bneq
+options = optimoptions('linprog','Algorithm','interior-point','display','off');
+%% Optimization model with the new constraint
+Bnew2=[B;B5];
+[Dsol,FVAL,EXITFLAG]=linprog(f,-[B;B5],-[bneq;bneq5],Aeq,beq,LB,UB,options);
+%% Optimization model with the new constraint
+%Bnew=[B;B;B5;B5];
+%bneqnew=[bneq;halfSm;bneq5;halfSm5];
+% size(B)
+% size(bneq)
+% size(halfSm)
+% halfSm(1)
+% pause
+% [Dsol,FVAL,EXITFLAG]=linprog(f,-Bnew,-bneqnew,Aeq,beq,LB,UB,options);
+% BBB=Bnew*Dsol-bneqnew;
+% BBB2=Bc*Dsol-halfSm;
+% sum(Bc*Dsol-halfSm);
+% min(BBB);
+%pause
+%% 
+if EXITFLAG <= 0  
+%disp('****************************************************')
+fprintf('DO NOT CONVERGE')  
+%disp('****************************************************')
+pause
+else 
+%[Bast2] = run_checker_transients(Dsol,nr,qmax,H);%coordination matrix obtained from D (optimized)
+Case0=zeros(15,1);% Initialize type pairs vector
+%reply2='n';
+ncase=0; 
+
+Bast2=[];Bast5=[];
+%% Begins Iterative process
+for k=1:nrf
+h=k/(nrf+1);% Fault location inserted here, with neval=1 h=0.5 0<h<1  %
+if k==1
+h=lowerbound;
+end
+if k==nrf
+h=upperbound;
+end
+
+
+Rf=Rd/Zbase;
+%Uniform distributed faults, if neval=1000 x goes from 0.001 to 0.999 Distance with respect to relay i
+[Bcoord2]=run_classification_Verifier(h,ncase,reply2,nlf,Dsol,Ip,K);%Runs the classification script
+Bast2=[Bast2;Bcoord2];
+Rf=Rf0/Zbase;
+%Uniform distributed faults, if neval=1000 x goes from 0.001 to 0.999 Distance with respect to relay i
+[Bcoord5]=run_classification_Verifier(h,ncase,reply2,nlf,Dsol,Ip,K);%Runs the classification script
+Bast5=[Bast5;Bcoord5];
+end
+econverg=abs(sum(sum([Bast2;Bast5]))-sum(sum([B;B5])))% Consistency verification
+if econverg<=criterion
+disp('Converged! Tripping sequence is correct!')
+Bxx=B;
+Bxx5=B5;
+%pause
+clear B
+clear B5
+% BBB=Bnew*Dsol-bneqnew;
+% min(BBB);
+% sum(Bnew*Dsol-bneqnew)
+break 
+break 
+end
+D=Dsol;
+for k=1:nr
+Dstr(i,k)=Dsol(k) ;
+end
+%sum(Dsol)
+Dsol'
+
+%pause
+end
+end
+elapsedtime=cputime-time000; 
+Dsim=Dsol'
+FVAL
+%end
+%%% investigating the quality of the solution
+%iterxx=i;Dsim=Dstr(iterxx-1,:);
+
+
+Rfx=0/Zbase;
+main_simulator_2026_internal     
+
+dictiorelays=[1 2 3 4 5 6 7 8 9 10 11 12 13 14; 
+               2 9 3 10 4 11 5 12 6 13 1 8 14 7];  % original case numbering 
+   for kk=1:length(Dsol)  
+   TAPs(dictiorelays(2,kk),1)= Dsol(kk); 
+   end
+% Ares=[nrf,elapsedtime,speed2,sel2,sen2,minSepTime,FVAL,length(Bxx),TAPs']; 
+% Response(:,ku)=[nrf;FVAL;length(Bxx);NSepTi;TAPs;elapsedtime;i;nf;sel2;speed2;sen2;minSepTime];
+iters=iters+1;  
+aaSolution(iters,:) = [FVAL sel sen AvgPrimSpeed TAPs'];
+end
