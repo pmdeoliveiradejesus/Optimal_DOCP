@@ -130,10 +130,6 @@ Bcoord(flag,C2(g,1))=beta(C2(g,1),C2(g,3));
 Bcoord(flag,C2(g,2))=-beta(C2(g,2),C2(g,3));
 Bcoord_case(flag,1)=1;
  
-
-
-
- 
 % D(C2(g,1))
 % D(C2(g,2))
 % pause
@@ -151,7 +147,8 @@ Sx(flag,5)=1;
 Tq(flag)=beta(C2(g,2),C2(g,3))*D(C2(g,2));
 Tp=beta(C2(g,1),C2(g,3))*D(C2(g,1));
 Sx(flag,6)=Tq(flag);
-halfSm2(flag,1)=beta(C2(g,2),C2(g,3))*D(C2(g,2));
+halfSm2(flag,1)=beta(C2(g,2),C2(g,3))*D(C2(g,2));%Tq
+%halfSm2(flag,1)=beta(C2(g,2),C2(g,3))*D(C2(g,2));%Tp
 %disp('back p')
 C2(g,1);
 %disp('main q')
@@ -270,7 +267,7 @@ S(flag)=betap(C1(g,1),C1(g,3))*D(C1(g,1))-betap(C1(g,2),C1(g,3))*D(C1(g,2))-gamm
 %Bcoord=zeros(flag,nr);
 Bcoord(flag,C1(g,1))=betap(C1(g,1),C1(g,3));
 Bcoord(flag,C1(g,2))=-betap(C1(g,2),C1(g,3));
-Bcoord(flag,C1(g,4))=-gammap(C1(g,4),C1(g,1),C1(g,2),C1(g,3));
+Bcoord(flag,C1(g,4))=-gammapp(C1(g,4),C1(g,1),C1(g,2),C1(g,3));
 Bcoord_case(flag,1)=3;
 
 

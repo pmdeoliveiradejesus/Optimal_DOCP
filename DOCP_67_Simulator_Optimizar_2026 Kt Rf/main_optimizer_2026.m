@@ -31,7 +31,7 @@ global Dmin Co upperbound lowerbound nr bdat ldat K Rf Ip Sbase Vbase Zbase Ibas
 %% Select test case
 %case_threebus_optimization_data; %Urdaneta/Perez/Nadira Modified Test Case
 case_eightbus_optimization_data; %Braga Test Case
-nrf=2; % Define Number of (Uniformly Distributed) Relevant Faults Location   
+nrf=1000; % Define Number of (Uniformly Distributed) Relevant Faults Location   
 time000=cputime;
 nf=1000;%number of faults per line (only for simulation, evaluation)
 reply2 = 'n';% 'n' means no prefault conditions
@@ -49,7 +49,10 @@ while econverg > 0
 Case0=zeros(15,1);% Initialize type pairs vector
 %reply2='n'; %no PREFAULT LOADFLOW
 ncase=0; 
-halfSm2x=[];Bc=[];B_case=[];iter=1;%initialize counter for separation times
+halfSm2x=[];
+Bc=[];
+B_case=[];
+iter=1;%initialize counter for separation times
 %% Begins Iterative process
 for k=1:nrf
 h=k/(nrf+1);% Fault location inserted here, with neval=1 h=0.5 0<h<1  %
@@ -61,6 +64,8 @@ h=upperbound;
 end
 %Uniform distributed faults, if neval=1000 x goes from 0.001 to 0.999 Distance with respect to relay i
 [halfSm2,S,Sx,Mx,Case,nlf,Co,Tix,Tq,index,nr,Iq,Ipback,Ipq,Ipp,Ii,Ij,Iip,Ijp,Ipi,Ipj,CaseType,distance,Bcoord,Bcoord_case]=run_classification_Bcoord(h,ncase,reply2,nlf,D,Ip,K);%Runs the classification script
+% h
+% pause
 Case0=Case0+Case;%All 15 pair types classified are aggregated here
 halfSm2x=[halfSm2;halfSm2x];
 Bc=[Bc;Bcoord];%Coordination matrix
@@ -105,11 +110,13 @@ bneq=ones(length(B(:,1)),1)*Co;
 % % Optimization problem: min f st. B > bneq
 options = optimoptions('linprog','Algorithm','interior-point','display','off');
 %% Optimization model with the new constraint
-[Dsol,FVAL,EXITFLAG]=linprog(f,-B,-bneq,Aeq,beq,LB,UB,options);
+%[Dsol,FVAL,EXITFLAG]=linprog(f,-B,-bneq,Aeq,beq,LB,UB,options); 
 %% Optimization model with the new constraint
-%Bnew=[B;B];% new constraint 
-%bneqnew=[bneq;halfSm];%new constraint
-%[Dsol,FVAL,EXITFLAG]=linprog(f,-Bnew,-bneqnew,Aeq,beq,LB,UB,options);
+Bnew=[B;B];% new constraint 
+bneqnew=[bneq;halfSm];%new constraint
+[Dsol,FVAL,EXITFLAG]=linprog(f,-Bnew,-bneqnew,Aeq,beq,LB,UB,options);
+%min(Bnew*Dsol-bneqnew)
+%pause
 %% 
 if EXITFLAG <= 0  
 %disp('****************************************************')
@@ -150,22 +157,24 @@ break
 break 
 end
 D=Dsol;
+sum(D)
 for k=1:nr
-Dstr(i,k)=Dsol(k) ;
+Dstr(i,k)=Dsol(k); 
 end
 end
 end
 elapsedtime=cputime-time000; 
 %end
 %%% investigating the quality of the solution
-%Dsim=Dstr(i-1,:); % solution for the new contraint
-Dsim=Dstr(i,:); % solution for the base case
+Dsim=Dstr(i-1,:); % solution for the new constraint%
+%Dsim=Dstr(i,:); % solution for the base case
+D=Dsim
+%Rf=00/Zbase;
 main_simulator_2026_internal% Run the simulator  
 
 % Only for 8-bus case 
-% dictiorelays=[1 2 3 4 5 6 7 8 9 10 11 12 13 14; 
-%               2 9 3 10 4 11 5 12 6 13 1 8 14 7];  % original case numbering 
-%   for kk=1:length(Dsol)  
-%   TMs(dictiorelays(2,kk),1)= Dsim(kk); 
-%   end
- 
+dictiorelays=[1 2 3 4 5 6 7 8 9 10 11 12 13 14; 
+               2 9 3 10 4 11 5 12 6 13 1 8 14 7];  % original case numbering 
+   for kk=1:length(Dsim)  
+   TAPs(dictiorelays(2,kk),1)= Dsim(kk); 
+   end

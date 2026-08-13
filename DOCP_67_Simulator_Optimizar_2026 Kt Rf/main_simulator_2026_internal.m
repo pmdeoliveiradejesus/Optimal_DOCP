@@ -49,7 +49,7 @@ T=unique(vertcat(unique([Tix';Tq']),T));%All nr primary times are aggregated her
 T(T==0)=[];
 sizeS(k)=length(S);%Set length of each separation vector
 for k=1:length(S)
-SepTime(iter,1)=S(k);
+SepTime(iter,1)=S(k);%This DT is not exact, it does not coincide with B*D
 SepTime(iter,2)=Sx(k,1);
 SepTime(iter,3)=Sx(k,2);
 SepTime(iter,4)=Sx(k,3);
@@ -79,22 +79,32 @@ ShortC(iterk,14)=Ipj(k);
 end%
 end
 %% Iterative process ends
-AAA=B22*Dsim'-Tppal*ktimes;
-for k=length(AAA(:,1))/2+1:length(AAA(:,1))/2
-if AAA(k,1) < 0 
-kki=kki+1;
-end
-end
-%determine number of separation times below specified Co (CTI)
-Bextended=[B,B_case];% coordination matrix,last column indicates the case number
 elapsedtime000=cputime-time000;% Set simulation time
+
+
+% Exact Septime!
+SepTimeX=B22*Dsim';
+% end%determine number of separation times below specified Co (CTI)
 ki=0;
 kki=0;
-for k=1:length(SepTime(:,1))
-if SepTime(k,1) < Co
-ki=ki+1;
-end
+for k=1:length(SepTimeX)
+    if SepTimeX(k)+0.00001 < Co
+        ki=ki+1;
+    end
+    if Tppal(k) > Co/(ktimes)
+        if SepTimeX(k)+0.00001 < ktimes*Tppal(k)% SepTime(:,7) and Tppal are the same
+            kki=kki+1;
+            % SepTime(k,1);
+            % (ktimes)*SepTime(k,7);
+        end
+    else
+        if SepTimeX(k)+0.00001 < Co
+            kki=kki+1;
+        end
+    end
 end%determine number of separation times below specified Co (CTI)
+
+
 
 % Types 1 to 6 calculation
 result(1,1)= Case0(1); %Number of relay pairs Type 1
@@ -168,18 +178,18 @@ fprintf('_______________________________________________________________________
 fprintf('Elapsed simulation time: %6.2f s \n',elapsedtime000)
 disp('****************************************************************************************')
 close all
-% Figure 1 - Histogram of Separation Times
-figure('name','Separation Times Histogram (s)','position',[0, 300, 400, 200])
-xbins = -0.50:0.01:2;
-h=histogram(SepTime(:,1),xbins,'FaceColor','yellow');
-set(gcf,'color','w')
-counts = h.Values';
-% Figure 2 - Histogram of System Primary Relay Operation Times
-figure('name','SPROT Histogram (s)','position',[0, 0, 400, 200])
-% SROT Histogram
-h=histogram((T.^-1),200,'FaceColor','yellow');
-set(gcf,'color','w')
-counts = h.Values;
+% % Figure 1 - Histogram of Separation Times
+% figure('name','Separation Times Histogram (s)','position',[0, 300, 400, 200])
+% xbins = -0.50:0.01:2;
+% h=histogram(SepTime(:,1),xbins,'FaceColor','yellow');
+% set(gcf,'color','w')
+% counts = h.Values';
+% % Figure 2 - Histogram of System Primary Relay Operation Times
+% figure('name','SPROT Histogram (s)','position',[0, 0, 400, 200])
+% % SROT Histogram
+% h=histogram((T.^-1),200,'FaceColor','yellow');
+% set(gcf,'color','w')
+% counts = h.Values;
 % %Save results for latex table
 % res(1,1)=N; % Total pairs
 % res(2,1)=Nf; % Total feasible pairs
@@ -201,9 +211,9 @@ counts = h.Values;
 % end
 % end
 % display curves according to De Oliveira-De Jesus, Paulo M., and Elmer Sorrentino. "A graphical tool to examine the coordination details of directional overcurrent protections as a function of fault location." IEEE Transactions on Power Delivery 40.1 (2024): 659-662.
-DisplayShortCircuitCurves
+%DisplayShortCircuitCurves
 %DisplayShortCircuitCurves2
-DisplaySelectivityCurves
+% DisplaySelectivityCurves
 %leg = legend({'Relay-pair'}, 'FontSize', 12, 'Location','best');
 %set(leg,'Interpreter','latex');
 % size(Bcoordc)

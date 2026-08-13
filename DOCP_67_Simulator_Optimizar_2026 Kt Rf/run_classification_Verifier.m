@@ -253,7 +253,7 @@ S(flag)=betap(C1(g,1),C1(g,3))*D(C1(g,1))-betap(C1(g,2),C1(g,3))*D(C1(g,2))-gamm
 %Bcoord=zeros(flag,nr);
 Bcoord(flag,C1(g,1))=betap(C1(g,1),C1(g,3));
 Bcoord(flag,C1(g,2))=-betap(C1(g,2),C1(g,3));
-Bcoord(flag,C1(g,4))=-gammap(C1(g,4),C1(g,1),C1(g,2),C1(g,3));
+Bcoord(flag,C1(g,4))=-gammapp(C1(g,4),C1(g,1),C1(g,2),C1(g,3));
 Bcoord_case(flag,1)=3;
 
 
