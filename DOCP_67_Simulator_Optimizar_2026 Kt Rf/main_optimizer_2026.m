@@ -29,11 +29,11 @@ time0=cputime;
 addpath('./data/')
 global Dmin Co upperbound lowerbound nr bdat ldat K Rf Ip Sbase Vbase Zbase Ibase econv itermax tdat nlf  reversest linenumber back main dictiolines dictiorelays
 %% Select test case
-%case_threebus_optimization_data; %Urdaneta/Perez/Nadira Modified Test Case
-case_eightbus_optimization_data; %Braga Test Case
-nrf=1000; % Define Number of (Uniformly Distributed) Relevant Faults Location   
+case_threebus_optimization_data; %Urdaneta/Perez/Nadira Modified Test Case
+%case_eightbus_optimization_data; %Braga Test Case
+nrf=4; % Define Number of (Uniformly Distributed) Relevant Faults Location   
 time000=cputime;
-nf=1000;%number of faults per line (only for simulation, evaluation)
+nf=3;%number of faults per line (only for simulation, evaluation)
 reply2 = 'n';% 'n' means no prefault conditions
 for k=1:nrf
  H(k,:)=ones(1,nlf)*k/(nrf+1);
@@ -110,11 +110,11 @@ bneq=ones(length(B(:,1)),1)*Co;
 % % Optimization problem: min f st. B > bneq
 options = optimoptions('linprog','Algorithm','interior-point','display','off');
 %% Optimization model with the new constraint
-%[Dsol,FVAL,EXITFLAG]=linprog(f,-B,-bneq,Aeq,beq,LB,UB,options); 
+[Dsol,FVAL,EXITFLAG]=linprog(f,-B,-bneq,Aeq,beq,LB,UB,options); 
 %% Optimization model with the new constraint
-Bnew=[B;B];% new constraint 
-bneqnew=[bneq;halfSm];%new constraint
-[Dsol,FVAL,EXITFLAG]=linprog(f,-Bnew,-bneqnew,Aeq,beq,LB,UB,options);
+%Bnew=[B;B];% new constraint 
+%bneqnew=[bneq;halfSm];%new constraint
+%[Dsol,FVAL,EXITFLAG]=linprog(f,-Bnew,-bneqnew,Aeq,beq,LB,UB,options);
 %min(Bnew*Dsol-bneqnew)
 %pause
 %% 
@@ -166,8 +166,8 @@ end
 elapsedtime=cputime-time000; 
 %end
 %%% investigating the quality of the solution
-Dsim=Dstr(i-1,:); % solution for the new constraint%
-%Dsim=Dstr(i,:); % solution for the base case
+%Dsim=Dstr(i-1,:); % solution for the new constraint%
+Dsim=Dstr(i,:); % solution for the base case
 D=Dsim
 %Rf=00/Zbase;
 main_simulator_2026_internal% Run the simulator  
