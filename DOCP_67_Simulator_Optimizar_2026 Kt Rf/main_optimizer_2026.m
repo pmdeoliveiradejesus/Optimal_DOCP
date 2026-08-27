@@ -29,11 +29,12 @@ time0=cputime;
 addpath('./data/')
 global Dmin Co upperbound lowerbound nr bdat ldat K Rf Ip Sbase Vbase Zbase Ibase econv itermax tdat nlf  reversest linenumber back main dictiolines dictiorelays
 %% Select test case
-case_threebus_optimization_data; %Urdaneta/Perez/Nadira Modified Test Case
+case_4bus_EE_LP;% 4 bus case Paper crucial remark
+%case_threebus_optimization_data; %Urdaneta/Perez/Nadira Modified Test Case
 %case_eightbus_optimization_data; %Braga Test Case
-nrf=4; % Define Number of (Uniformly Distributed) Relevant Faults Location   
+nrf=100; % Define Number of (Uniformly Distributed) Relevant Faults Location   
 time000=cputime;
-nf=3;%number of faults per line (only for simulation, evaluation)
+nf=100;%number of faults per line (only for simulation, evaluation)
 reply2 = 'n';% 'n' means no prefault conditions
 for k=1:nrf
  H(k,:)=ones(1,nlf)*k/(nrf+1);

@@ -37,9 +37,9 @@ k11=.14;k12=0.02;k13=-1; SI=[k11;k12;k13];
 k21=13.5;k22=1;k23=-1;VI=[k21;k22;k23];
 %Relay curve settings, Extremely Inverse (EI) IEC 60255
 k31=80;k32=2;k33=-1;EI=[k31;k32;k33];
-K=[SI,SI,SI,SI,SI,SI];
+%K=[SI,SI,SI,SI,SI,SI];
 %K=[VI,VI,VI,VI,VI,VI];
-%K=[EI,EI,EI,EI,EI,EI];
+K=[EI,EI,EI,EI,EI,EI];
 %qmax=175; %relay polarization angle (deg) -to detect opposite currents
 Ip(1)=.3;
 Ip(2)=.06;
@@ -74,6 +74,9 @@ XG3=.18;% pu
 Xg1=(XG1*Vbase^2/SG1)/Zbase;
 Xg2=(XG2*Vbase^2/SG2)/Zbase;
 Xg3=(XG3*Vbase^2/SG3)/Zbase;
+% Xg2=2.8;
+% Xg3=1.4;
+
 Rg1=0;
 Rg2=0;
 Rg3=10;
