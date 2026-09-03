@@ -110,8 +110,8 @@ dictiorelays=[1 2 3 4 5 6 7 8 9 10 11 12 13 14;
 dictiolines=[1 2 3 4 5 6 7 ; 
              2 3 4 5 6 1 7 ];  % original case numbering  
 %% Simulation/Optimization Data
- lowerbound=0.00000001; % from % of the lline
- upperbound=0.99999999; % to % of the line
+ lowerbound=0.001; % from % of the line
+ upperbound=0.999; % to % of the line
 %% System Data
 Sbase=150;%MVA
 Vbase=150;%kV

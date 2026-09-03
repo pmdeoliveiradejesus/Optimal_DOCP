@@ -1,6 +1,7 @@
 %Short-circuit program - Stevenson's Zbus apprroach
 function [index] =  run_shortcircuit(L,reply2)
 global Rf reply2 Co K Ip Dmin nr dictionodes dictiorelays Dmin Co nr bdat ldat K Ip Sbase Vbase Zbase Ibase econv itermax tdat nlf Dsol qmax lowerbound upperbound npr reversest linenumber
+%L=[0.5 0.5 0.5];
 nbuses=length(bdat(:,1));
     flag1=0;
     for k=1:length(bdat(:,1))
@@ -226,6 +227,10 @@ for k=1:ngen
 Yb(k+length(bdat1(:,1))-2*ngen,k+length(bdat1(:,1))-2*ngen)=Yb(k+length(bdat1(:,1))-2*ngen,k+length(bdat1(:,1))-2*ngen)+inv(complex(ldat1(k,4),ldat1(k,5)));
 end
 Zb=inv(Yb);
+% for k=4:4
+% mI4=abs(inv(Zb(k,k)))*Ibase
+% end
+% pause
 % Ibase
 % Ncc1=abs(inv(Zb(1,1))*Ibase)
 % Ncc5=abs(inv(Zb(5,5))*Ibase)

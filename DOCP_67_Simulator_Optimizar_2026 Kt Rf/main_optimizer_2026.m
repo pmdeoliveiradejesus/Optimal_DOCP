@@ -29,8 +29,8 @@ time0=cputime;
 addpath('./data/')
 global Dmin Co upperbound lowerbound nr bdat ldat K Rf Ip Sbase Vbase Zbase Ibase econv itermax tdat nlf  reversest linenumber back main dictiolines dictiorelays
 %% Select test case
-case_4bus_EE_LP;% 4 bus case Paper crucial remark
-%case_threebus_optimization_data; %Urdaneta/Perez/Nadira Modified Test Case
+%case_4bus_EE_LP;% 4 bus case Paper crucial remark
+case_threebus_optimization_data; %Urdaneta/Perez/Nadira Modified Test Case
 %case_eightbus_optimization_data; %Braga Test Case
 nrf=100; % Define Number of (Uniformly Distributed) Relevant Faults Location   
 time000=cputime;

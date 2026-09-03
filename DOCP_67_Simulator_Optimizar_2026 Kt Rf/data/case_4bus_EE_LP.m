@@ -48,8 +48,8 @@ Dmin=0.1; % minimal dial setting
 nr=length(Ip); 
 
 %% Simulation/Optimization Data
-lowerbound=.00000001; % from % of the lline
-upperbound=.99999999; % to % of the line
+ lowerbound=0.001; % from % of the line
+ upperbound=0.999; % to % of the line
 %% System Data
 Sbase=100;%MVA
 Vbase=115;%kV

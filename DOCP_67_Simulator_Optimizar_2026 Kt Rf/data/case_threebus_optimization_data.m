@@ -37,9 +37,9 @@ k11=.14;k12=0.02;k13=-1; SI=[k11;k12;k13];
 k21=13.5;k22=1;k23=-1;VI=[k21;k22;k23];
 %Relay curve settings, Extremely Inverse (EI) IEC 60255
 k31=80;k32=2;k33=-1;EI=[k31;k32;k33];
-%K=[SI,SI,SI,SI,SI,SI];
+K=[SI,SI,SI,SI,SI,SI];
 %K=[VI,VI,VI,VI,VI,VI];
-K=[EI,EI,EI,EI,EI,EI];
+%K=[EI,EI,EI,EI,EI,EI];
 %qmax=175; %relay polarization angle (deg) -to detect opposite currents
 Ip(1)=.3;
 Ip(2)=.06;
@@ -54,8 +54,8 @@ dictiorelays=[1 2 3 4 5 6 ;
 dictiolines=[1 2 3 ; 
              1 2 3 ];  % original case numbering 
 %% Simulation/Optimization Data
-lowerbound=.000001; % from % of the lline
-upperbound=.999999; % to % of the line
+ lowerbound=0.001; % from % of the line
+ upperbound=0.999; % to % of the line
 %neval=1000;%number of faults per line (simulation, evaluation)
 %% System Data
 Sbase=100;%MVA
@@ -74,20 +74,21 @@ XG3=.18;% pu
 Xg1=(XG1*Vbase^2/SG1)/Zbase;
 Xg2=(XG2*Vbase^2/SG2)/Zbase;
 Xg3=(XG3*Vbase^2/SG3)/Zbase;
-% Xg2=2.8;
-% Xg3=1.4;
+% Xg1=0.7;%pu
+% Xg2=2.8;%pu
+% Xg3=1.4;%pu
 
 Rg1=0;
 Rg2=0;
-Rg3=10;
+Rg3=0;
 Rt=[0 0 0];% pu
 Xt=[.00001 .00001 .00001];% pu
 Xg=[Xg1 Xg2 Xg3];%*Zbaselow/Zbase;% pu
 Rg=[Rg1 Rg2 Rg3];%pu
 ngen=length(Xg);
 % lines
-R=[ 5.5   .15*4.4  7.6]/Zbase; %line resistances (ohms)
-X=[22.85  .15*18   27  ]/Zbase; %line reactance (ohms)
+R=[ 5.5   0.15*4.4  7.6]/Zbase; %line resistances (ohms)
+X=[22.85  0.15*18   27  ]/Zbase; %line reactance (ohms)
 B=[ 0     0    0  ]*Zbase; %line total susceptance (siemens)
 nlf=length(R);
 ldat=[  
