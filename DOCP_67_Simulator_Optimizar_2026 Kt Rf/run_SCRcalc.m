@@ -1,0 +1,254 @@
+%Short-circuit program - SCR calculation
+function [Icc,mIcc,XR,Isources] =  run_SCRcalc(nlf,reply2)
+L=0.5*ones(1,nlf);
+global  loadsflag Rf reply2 Co K Ip Dmin nr dictionodes dictiorelays Dmin Co nr bdat ldat K Ip Sbase Vbase Zbase Ibase econv itermax tdat nlf Dsol qmax lowerbound upperbound npr reversest linenumber
+nbuses=length(bdat(:,1));
+    flag1=0;
+    for k=1:length(bdat(:,1))
+    if bdat(k,3) == 3
+flag1=flag1+1;
+    end
+    end
+ngen=length(bdat(:,1))-flag1;
+nlines=length(ldat(:,1))-ngen;
+bdat1=bdat;
+ldat1=ldat;
+for k=ngen+1:nbuses
+    bdat1(k,:)=bdat(k,:);
+end
+for k=nbuses+1:nlines+nbuses
+    bdat1(k,1)=k;
+    bdat1(k,2)=999;
+    bdat1(k,3)=3;
+end
+for k=ngen+1:2*nlines+ngen
+    ldat1(k,3)=k-ngen;
+end
+for k=1:nlines
+ldat1(k*2+(ngen-1),1)=ldat(k+ngen,1);
+end
+for k=1:nlines
+ldat1(1+k*2+(ngen-1),2)=ldat(k+ngen,2);
+end
+for k=1:nlines
+ldat1(k*2+(ngen),1)=k+ngen+flag1;
+ldat1(k*2+(ngen),4)=ldat(ngen+k,4)*(1-L(k));
+ldat1(k*2+(ngen),5)=ldat(ngen+k,5)*(1-L(k));
+end
+for k=1:nlines
+ldat1(k*2+(ngen-1),2)=k+ngen+flag1;
+ldat1(k*2+(ngen-1),4)=ldat(ngen+k,4)*(L(k));
+ldat1(k*2+(ngen-1),5)=ldat(ngen+k,5)*(L(k));
+end
+%Relay table
+for i=1:length(ldat1(:,1))-ngen
+    Relay(i,1)=i;%relay number
+    Relay(i,2)=ldat1(i+ngen,1)-ngen; %from bus ns
+    Relay(i,3)=ldat1(i+ngen,2)-ngen; % to bus nr
+end
+% Ordering relay table
+for k=1:length(Relay(:,1))
+if Relay(k,2) >  Relay(k,3)
+flag5=Relay(k,2);
+  Relay(k,2)=Relay(k,3);
+  Relay(k,3)=flag5;
+end
+end
+for k=ngen+1:length(ldat1(:,1))
+ldat2(k-ngen,:)=ldat1(k,:);
+ldat2(k-ngen,1)=ldat1(k,1)-ngen;
+ldat2(k-ngen,2)=ldat1(k,2)-ngen;
+end
+%Index=zeros(10,30);
+w=ones(30,30);
+for  kk=flag1+1:length(bdat1(:,1))-ngen
+for j=1:length(ldat2(:,1))
+if ldat2(j,1)==kk
+    extreme1(w(kk,1),1)=ldat2(j,2);
+    w(kk,1)=w(kk,1)+1;
+end
+if ldat2(j,2)==kk
+    extreme2(w(kk,2),1)=ldat2(j,1);
+    w(kk,2)=w(kk,2)+1;
+end
+end
+for jj=1:length(extreme1(:,1))
+for j=1:length(ldat2(:,1))
+if ldat2(j,1)==extreme1(jj,1) & ldat2(j,2)~=kk
+    extreme1a(w(kk,3),1)=ldat2(j,2);
+    w(kk,3)=w(kk,3)+1;
+end
+if ldat2(j,2)==extreme1(jj,1) & ldat2(j,1)~=kk
+    extreme1a(w(kk,3),1)=ldat2(j,1);
+    w(kk,3)=w(kk,3)+1;
+end
+end
+end
+for jj=1:length(extreme1a(:,1))
+for j=1:length(ldat2(:,1))
+if ldat2(j,1)==extreme1a(jj,1) %& ldat2(j,2)~=extreme1(1,1)
+    extreme1b(w(kk,4),1)=ldat2(j,2);
+    w(kk,4)=w(kk,4)+1;
+end
+if ldat2(j,2)==extreme1a(jj,1) %& ldat2(j,1)~=extreme1(1,1)
+    extreme1b(w(kk,4),1)=ldat2(j,1);
+    w(kk,4)=w(kk,4)+1;
+end
+end
+end
+for k=1:length(extreme1b)
+    if extreme1b(k,1) == extreme1(1,1)
+    else
+       extreme1e(w(kk,5),1)=extreme1b(k,1);
+       w(kk,5)= w(kk,5)+1;
+    end
+end
+
+for jj=1:length(extreme2(:,1))
+for j=1:length(ldat2(:,1))
+if ldat2(j,1)==extreme2(jj,1) & ldat2(j,2)~=kk
+    extreme2a(w(kk,6),1)=ldat2(j,2);
+    w(kk,6)=w(kk,6)+1;
+end
+if ldat2(j,2)==extreme2(jj,1) & ldat2(j,1)~=kk
+    extreme2a(w(kk,6),1)=ldat2(j,1);
+    w(kk,6)=w(kk,6)+1;
+end
+end
+end
+for jj=1:length(extreme2a(:,1))
+for j=1:length(ldat2(:,1))
+if ldat2(j,1)==extreme2a(jj,1)
+    extreme1c(w(kk,7),1)=ldat2(j,2);
+    w(kk,7)=w(kk,7)+1;
+end
+if ldat2(j,2)==extreme2a(jj,1)
+    extreme1c(w(kk,7),1)=ldat2(j,1);
+    w(kk,7)=w(kk,7)+1;
+end
+end
+end
+for k=1:length(extreme1c)
+    if extreme1c(k,1) == extreme2(1,1)
+    else
+       extreme1d(w(kk,8),1)=extreme1c(k,1);
+       w(kk,8)=w(kk,8)+1;
+    end
+end
+InM=[extreme2,extreme1];
+InB2=[length(extreme1e),extreme1e',extreme1a'];
+InB1=[length(extreme1d),extreme1d',extreme2a'];
+for k=1:length(InM)
+    IM(kk,k)=InM(k);
+end
+for k=1:length(InB2)
+    IB2(kk,k)=InB2(k);
+end
+for k=1:length(InB1)
+    IB1(kk,k)=InB1(k);
+end
+clear extreme1 extreme2 extreme1b extreme1c extreme1e extreme1a extreme1d extreme2a
+end
+ cc=length(bdat1(:,1))-ngen;
+ dd=length(ldat2(:,1));
+  for k=1:ngen
+ldat2(dd+k,:)=[cc+k,ldat(k,2)-ngen,11113,tdat(k,4),tdat(k,5),0,0,0];
+  end
+ aa=length(bdat1(:,1));
+ bb=length(ldat1(:,1));
+ for k=1:ngen
+ ldat1(k,2)=aa+k;
+ end
+  for k=1:ngen
+  ldat1(bb+k,:)=[aa+k,ldat(k,2),111113,tdat(k,4),tdat(k,5),0,0,0];
+  bdat1(aa+k,:)=[aa+k,999,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  end
+ldat1x=ldat1;
+ for k=1:ngen
+ldat1x(k,5)=0.00001;
+ldat1x(k,4)=0.0000;
+end
+% Run prefault loadflow
+if reply2 == 'n'
+vt=ones(1,length(bdat1(:,1))-ngen);% prefault voltages set equal to 1
+else
+vt=run_prefault_loadflow(bdat1,ldat1x,econv,itermax);
+end
+% Short cirtuit study (Full Ybus)
+%Fault at k
+nl=length(ldat2(:,1));
+n=length(bdat1(:,1))-ngen+length(tdat(:,1));
+for i=1:length(bdat1(:,1))-ngen+length(tdat(:,1))
+   for j=1:length(bdat1(:,1))-ngen+length(tdat(:,1))
+Z2(i,j)=10^200;
+	end
+end
+for k=1:nl
+   if ldat2(k,1)>=ldat2(k,2)
+      Z2(ldat2(k,2),ldat2(k,1))=complex(ldat2(k,4),ldat2(k,5));
+      else
+      Z2(ldat2(k,1),ldat2(k,2))=complex(ldat2(k,4),ldat2(k,5));
+end
+end
+for k=1:nl
+   if ldat2(k,1)>=ldat2(k,2)
+      su2(ldat2(k,2),ldat2(k,1))=0.5*complex(0,ldat2(k,6));
+      else
+      su2(ldat2(k,1),ldat2(k,2))=0.5*complex(0,ldat2(k,6));
+   end
+end
+for i=1:length(bdat1(:,1))-ngen
+   for j=1:length(bdat1(:,1))-ngen
+      if i~=j
+      su2(j,i)=su2(i,j);
+      end
+   end
+end
+for i=1:length(bdat1(:,1))-ngen
+   for j=1:length(bdat1(:,1))-ngen
+      if i~=j
+      Z2(j,i)=Z2(i,j);
+      end
+   end
+end
+%Z20=Z2;
+%create Ybus
+for i=1:length(bdat1(:,1))-ngen
+   Yb(i,i)=0;
+   for j=1:length(bdat1(:,1))-ngen
+      if i~=j
+      Yb(i,i)=inv(Z2(i,j))+Yb(i,i)+su2(i,j);
+      Yb(i,j)=-inv(Z2(i,j));
+      end
+   end
+end
+%Yb=Yb+sh;%Add (sh) shunt suceptance at buses
+for k=1:ngen
+    Yb(k+length(bdat1(:,1))-2*ngen,k+length(bdat1(:,1))-2*ngen)=Yb(k+length(bdat1(:,1))-2*ngen,k+length(bdat1(:,1))-2*ngen)+inv(complex(ldat1(k,4),ldat1(k,5)));
+end
+if loadsflag==1 
+    for k=1:length(bdat(:,3))
+        if bdat(k,3)==3
+Yb(bdat(k,1),bdat(k,1))=Yb(bdat(k,1),bdat(k,1))+loadsflag*complex(bdat(bdat(k,1),6),-bdat(bdat(k,1),7))/abs(vt(bdat(k,1)))^2;
+        end
+    end
+end
+Zb=inv(Yb);
+Icc(1)=(vt(1+ngen)*inv(Zb(1,1)))*Ibase;
+mIcc(1)=abs(Icc(1));
+XR(1)=abs(imag(Icc(1))/real(Icc(1)));
+Icc(2)=(vt(5+ngen)*inv(Zb(5,5)))*Ibase;
+mIcc(2)=abs(Icc(2));
+XR(2)=abs(imag(Icc(2))/real(Icc(2)));
+U(:,1)=-Zb(:,1).*inv(Zb(1,1)+Rf);
+Isources(1)= abs(vt(ngen+1)*Ibase*((U(6+nlf+1,1)-U(1,1))/Z2(6+nlf+1,1)));
+U(:,5)=-Zb(:,5).*inv(Zb(5,5)+Rf);
+Isources(2)=abs(vt(ngen+5)*Ibase*((U(6+nlf+2,5)-U(5,5))/Z2(6+nlf+2,5)));
+% U(:,6)=-Zb(:,6).*inv(Zb(6,6)+Rf);
+% Isources(3)=abs(vt(ngen+6)*Ibase*((U(16,6)-U(6,6))/Z2(16,6)));
+ 
+abs(vt);
+for k=1:6
+Iccx(k)=(vt(k+ngen)*inv(Zb(k,k)))*Ibase;
+mIccx(k)=abs(Iccx(k));
+end
